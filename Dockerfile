@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi8/ubi
+FROM registry.access.redhat.com/ubi8/ubi
 
 # Required to stop angular-cli install from prompting for a response
 ENV NG_CLI_ANALYTICS=ci
