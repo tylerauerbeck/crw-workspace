@@ -1,0 +1,10 @@
+apiVersion: 1.0.0
+metadata:
+ generateName: honda-lde-ws-
+components:
+ -
+  type: dockerimage
+  alias: honda-lde-ws 
+  image: 'image-registry.openshift-image-registry.svc:5000/common/honda-lde-ws:latest'
+  memoryLimit: 2Gi 
+  mountSources: true
