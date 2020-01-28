@@ -9,6 +9,7 @@ To deploy a CodeReady Workspace based off of the environment we've defined, visi
 
 https://codeready-common.apps.honda-lde.rht-labs.com/f?url=https://github.com/tylerauerbeck/crw-workspace
 
+*Note:* We're currently pointing to a public repo for this because CRW is unable to pull from private repos. This will be fixed in the near future and this private repo is currently being synced to the public repo.
 
 #Build custom docker image
 
