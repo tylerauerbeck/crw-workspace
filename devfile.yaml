@@ -7,4 +7,3 @@ components:
   alias: honda-lde-ws 
   image: 'image-registry.openshift-image-registry.svc:5000/common/honda-lde-ws:latest'
   memoryLimit: 2Gi 
-  mountSources: true
