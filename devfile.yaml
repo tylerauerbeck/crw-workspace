@@ -1,14 +1,92 @@
-apiVersion: 1.0.0
 metadata:
- generateName: honda-lde-ws-
+  name: honda-lde-ws-3gljz
 components:
- -
-  type: dockerimage
-  alias: honda-lde-ws 
-  image: 'image-registry.openshift-image-registry.svc:5000/openshift/honda-lde-ws:latest'
-  memoryLimit: 2Gi 
-  mountSources: true
-  command:
-    - sleep
-  args:
-    - infinity
+  - id: redhat/java8/latest
+    type: chePlugin
+  - id: redhat/dependency-analytics/latest
+    type: chePlugin
+  - mountSources: true
+    endpoints:
+      - name: 8080/tcp
+        port: 8080
+      - name: 8081/tcp
+        port: 8081
+    command:
+      - sleep
+    args:
+      - infinity
+    memoryLimit: 2Gi
+    type: dockerimage
+    volumes:
+      - name: m2
+        containerPath: /projects/.m2
+    alias: honda-lde-ws
+    image: >-
+      image-registry.openshift-image-registry.svc:5000/openshift/honda-lde-ws:latest
+    env:
+      - value: >-
+          -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+          -Xms20m -Djava.security.egd=file:/dev/./urandom
+          -Duser.home=/projects
+        name: JAVA_OPTS
+      - value: $(JAVA_OPTS)
+        name: MAVEN_OPTS
+  - id: eclipse/che-machine-exec-plugin/latest
+    type: chePlugin
+apiVersion: 1.0.0
+commands:
+  - name: build
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/spring-boot-http-booster'
+        type: exec
+        command: >-
+          MAVEN_OPTS="-Xmx200m" && mvn -Duser.home=${HOME} -DskipTests clean
+          install
+        component: honda-lde-ws
+  - name: Debug remote java application
+    actions:
+      - referenceContent: |
+          {
+           "version": "0.2.0",
+           "configurations": [
+             {
+               "type": "java",
+               "name": "Debug (Attach) - Remote",
+               "request": "attach",
+               "hostName": "localhost",
+               "port": 8000
+             }]
+           }
+        type: vscode-launch
+  - name: run
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/spring-boot-http-booster'
+        type: exec
+        command: 'MAVEN_OPTS="-Xmx200m" && mvn -Duser.home=${HOME} spring-boot:run'
+        component: honda-lde-ws
+  - name: debug
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/spring-boot-http-booster'
+        type: exec
+        command: >-
+          mvn  -Duser.home=${HOME} spring-boot:run -Drun.jvmArguments="-Xdebug
+          -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000"
+        component: honda-lde-ws
+  - name: test
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/spring-boot-http-booster'
+        type: exec
+        command: 'MAVEN_OPTS="-Xmx200m" && mvn -Duser.home=${HOME} verify'
+        component: honda-lde-ws
+  - name: dependency-analysis
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/spring-boot-http-booster'
+        type: exec
+        command: >-
+          ${HOME}/stack-analysis.sh -f
+          ${CHE_PROJECTS_ROOT}/spring-boot-http-booster/pom.xml -p
+          ${CHE_PROJECTS_ROOT}/spring-boot-http-booster
+        component: honda-lde-ws
+
